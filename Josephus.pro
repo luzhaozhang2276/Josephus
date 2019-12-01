@@ -17,11 +17,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     josephus.cpp \
+    josephusthread.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     josephus.h \
+    josephusthread.h \
     mainwindow.h
 
 FORMS += \

@@ -71,11 +71,10 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     );
 
-
-
-
-
-
+    josethread = new JosephusThread(this);
+    connect(this, SIGNAL(sendmsg(int, int)), josethread, SLOT(getValue(int, int)));
+    connect(josethread, &JosephusThread::changeValue, this, &MainWindow::showLCD);
+    josethread->start();
 }
 
 MainWindow::~MainWindow()
@@ -150,4 +149,15 @@ void MainWindow::paintEvent(QPaintEvent *event)
 //    painter.drawEllipse(QPointF(50+300, 300), 10, 10);
 
     painter.end();
+}
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    int i = 3, j = 4;
+    emit sendmsg(i, j);
+}
+
+void MainWindow::showLCD(int n)
+{
+    ui->lcdNumber->display(n);
 }
