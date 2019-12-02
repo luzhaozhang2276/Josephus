@@ -1,12 +1,14 @@
 #include "josephusthread.h"
 
 #include <QDebug>
+//#include <vector>
 
 CircleList::CircleList() {
     head = new Node();
     head->next = head;
     head->data = 0;
     length = 0;
+    v_order = new std::vector<int>;
 }
 
 CircleList::~CircleList() {
@@ -31,10 +33,8 @@ void CircleList::traverseNode() {
     p = head->next;
 
     while (p != head){
-//        std::cout << p->data;
         p = p->next;
     }
-//    std::cout << std::endl;
 }
 
 void CircleList::deleteFunc(Node *p) {
@@ -64,41 +64,39 @@ void CircleList::insertNode(int n, int data) {
 }
 
 // 应改成递归
-void CircleList::run(int start, const int m) {
+void CircleList::operation(int start, const int m) {
     Node *p = head;
     for (int i = 0; i < start; ++i)
         p = p->next;
     int count = 1;
     while (length){
-        if ( p == head) {
-            p = p->next;
-            if (length != 1)
-                count++;
-        }
-        else if (count != m-1){
-            p = p->next;
-            if (p != head || length == 1) {
-                count++;
+        if (getStatus() != 1)
+            break;
+        else if (getStatus() == 1)
+        {
+            if ( p == head) {
+                p = p->next;
+                if (length != 1)
+                    count++;
+            }
+            else if (count != m-1){
+                p = p->next;
+                if (p != head || length == 1) {
+                    count++;
+                }
+            }
+            else{
+                count = 0;
+                if (p->next == head)
+                    p = head;
+                // 需要删除的节点 p->next
+                //                sleep(1);
+                v_order->emplace_back(p->next->data);
+                deleteFunc(p);
+                //            traverseNode();
             }
         }
-        else{
-            count = 0;
-            if (p->next == head)
-                p = head;
-            // 需要删除的节点 p->next
-//            sleep(1);
-
-//            std::cout << "delete: " << p->next->data << std::endl;
-            deleteFunc(p);
-//            traverseNode();
-        }
     }
-}
-
-void JosephusThread::run()
-{
-    sleep(10);
-    emit isDone();
 }
 
 void JosephusThread::getValue(int n, int y)
@@ -106,3 +104,12 @@ void JosephusThread::getValue(int n, int y)
     qDebug() << "value: " << n << " + " << y;
     emit changeValue(n+y);
 }
+
+void JosephusThread::run()
+{
+    List.operation(start_value_,circulate_value_);
+    emit sendpVector(List.getVector());
+    emit isDone();
+}
+
+

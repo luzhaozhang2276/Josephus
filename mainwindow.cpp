@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QTime>
+#include <QCoreApplication>
 #include <QAction>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -19,21 +21,39 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    initWindow();
+    pVector = new std::vector<int>;
+
+    josethread = new JosephusThread(this);
+    connect(this, SIGNAL(sendmsg(int, int)), josethread, SLOT(getValue(int, int)));
+    connect(josethread, &JosephusThread::changeValue, this, &MainWindow::showLCD);
+    paintflag = 0;
+    draw_count = 0;
+    connect(josethread, &JosephusThread::sendpVector, this, &MainWindow::showJosephus);
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::initWindow()
+{
+    /********************** title ****************************/
     setWindowTitle(tr("Main Window"));
 
+    /********************** statusbar ****************************/
     ui->statusbar->setSizeGripEnabled(false);
-
     QLabel *normal = new QLabel("正常信息",this);
     ui->statusbar->addWidget(normal);
     //    ui->statusbar->showMessage(tr("临时信息"), 2000);
-
     QLabel *version = new QLabel(this);
-    //    version->setFrameStyle(QFrame::Box | QFrame::Sunken);
-    version->setText( tr("<a href=\"https://github.com/luzhaozhang2276\">github主页</a>"));
-    //    version->setText("永久信息");
+    version->setText( tr("<a href=\"https://github.com/luzhaozhang2276/Josephus\">github主页</a>"));
     version->setOpenExternalLinks(true);
     ui->statusbar->addPermanentWidget(version);
 
+    /********************** statusbar ****************************/
     //    QToolBar *toolBar = addToolBar("工具栏");
     //    toolBar->addAction(paction);
     QMenuBar *pmenuBar = menuBar();
@@ -50,8 +70,8 @@ MainWindow::MainWindow(QWidget *parent) :
         input.setInputMode(QInputDialog::IntInput);
         if (input.exec() == QInputDialog::Accepted)
         {
-            jose.SetInitialValue(input.intValue());
-            qDebug() << jose.GetInitialValue();
+            josethread->setInitialValue(input.intValue());
+            qDebug() << josethread->getInitialValue();
         }
     }
     );
@@ -65,21 +85,11 @@ MainWindow::MainWindow(QWidget *parent) :
         input.setInputMode(QInputDialog::IntInput);
         if (input.exec() == QInputDialog::Accepted)
         {
-            jose.SetInitialValue(input.intValue());
-            qDebug() << jose.GetInitialValue();
+            josethread->setInitialValue(input.intValue());
+            qDebug() << josethread->getInitialValue();
         }
     }
     );
-
-    josethread = new JosephusThread(this);
-    connect(this, SIGNAL(sendmsg(int, int)), josethread, SLOT(getValue(int, int)));
-    connect(josethread, &JosephusThread::changeValue, this, &MainWindow::showLCD);
-    josethread->start();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::on_pushButton_2_clicked()
@@ -105,50 +115,37 @@ void MainWindow::on_pushButton_clicked(bool checked)
     }
 }
 
-void MainWindow::on_lineEdit_returnPressed()
+void MainWindow::on_lineEdit_initial_value_returnPressed()
 {
-    QString i = ui->lineEdit->text();
+    QString i = ui->lineEdit_initial_value->text();
     int number = i.toInt();
-    jose.SetInitialValue(number);
-    qDebug() << "人数: " << jose.GetInitialValue();
+    josethread->setInitialValue(number);
+    qDebug() << "人数: " << josethread->getInitialValue();
 }
 
-void MainWindow::on_lineEdit_2_returnPressed()
+void MainWindow::on_lineEdit_circulate_value_returnPressed()
 {
-    QString i = ui->lineEdit_2->text();
+    QString i = ui->lineEdit_circulate_value->text();
     int number = i.toInt();
-    jose.SetCirculaValue(number);
-    qDebug() << "参数: " << jose.GetCirculaValue();
+    josethread->setCirculaValue(number);
+    qDebug() << "参数: " << josethread->getCircluaValue();
 }
 
-void MainWindow::paintEvent(QPaintEvent *event)
+void MainWindow::on_lineEdit_start_value_returnPressed()
 {
-//    Q_UNUSED(event);
-    QPainter painter;
-    painter.begin(this);
+    QString i = ui->lineEdit_start_value->text();
+    int number = i.toInt();
+    josethread->setStartValue(number);
+    qDebug() << "起点: " << josethread->getStartValue();
+}
 
-    // 设置画刷颜色   (255, 160, 90)
-//    painter.setBrush(QColor(255, 255, 255));
-
-    // 绘制圆
-    int count = 4;
-    painter.drawEllipse(QPointF(300, 300), 50, 50);
-
-    painter.setBrush(QColor(255, 255, 255));
-    for (int i=0;i<count;++i) {
-        QPointF insertPoint(QPointF(50*qCos(2*M_PI/count*i)+300, 50*qSin(2*M_PI/count*i)+300));
-//        QEllipse ff();
-        painter.drawEllipse(insertPoint, 10, 10);
-        painter.drawText(insertPoint.x()-4,insertPoint.y()+5, QString::number(i+1,10));
-    }
-//    Qt::AlignCenter;
-//    painter.drawPoint(350,300);
-//    painter.drawText(350,300,tr("1"));
-//    qDebug() << "*****************************************";
-    painter.setBrush(QColor(255, 160, 90));
-//    painter.drawEllipse(QPointF(50+300, 300), 10, 10);
-
-    painter.end();
+void MainWindow::on_pushButton_configuration_clicked()
+{
+    josethread->start();
+    josethread->setInitialFlag(true);
+    paintflag =1;
+    MainWindow::repaint();
+//    qDebug() << "paintflag: " << paintflag;
 }
 
 void MainWindow::on_pushButton_3_clicked()
@@ -160,4 +157,67 @@ void MainWindow::on_pushButton_3_clicked()
 void MainWindow::showLCD(int n)
 {
     ui->lcdNumber->display(n);
+}
+
+void MainWindow::on_pushButton_start_clicked()
+{
+
+}
+
+void MainWindow::on_pushButton_pause_clicked()
+{
+
+}
+
+void MainWindow::on_pushButton_quit_clicked()
+{
+
+}
+
+void MainWindow::paintEvent(QPaintEvent *)
+{
+    if (josethread->getInitialFlag())
+    {
+        QPainter painter;
+        painter.begin(this);
+        // 绘制圆
+        int count = josethread->getInitialValue();
+        painter.drawEllipse(QPointF(CENTER_POINT_X, CENTER_POINT_Y), RADIUS, RADIUS);
+        painter.setBrush(QColor(255, 255, 255));
+        for (int i=0;i<count;++i) {
+            QPointF insertPoint(QPointF(RADIUS*qCos(2*M_PI/count*i)+CENTER_POINT_X, RADIUS*qSin(2*M_PI/count*i)+CENTER_POINT_Y));
+            painter.drawEllipse(insertPoint, RADIUS_NODE, RADIUS_NODE);
+            painter.drawText(insertPoint.x()-4.0,insertPoint.y()+5.0, QString::number(i+1,RADIUS_NODE));
+        }
+
+        if (paintflag == 1)
+        {
+            painter.setBrush(QColor(255, 160, 90));
+            int id = 0;
+            for (int i=0;i<draw_count;i++) {
+                id = pVector->at(i);
+                QPointF insertPoint(QPointF(RADIUS*qCos(2*M_PI/count*id)+CENTER_POINT_X, RADIUS*qSin(2*M_PI/count*id)+CENTER_POINT_Y));
+                painter.drawEllipse(insertPoint, RADIUS_NODE, RADIUS_NODE);
+            }
+            paintflag = 0;
+        }
+        painter.end();
+    }
+}
+
+void MainWindow::showJosephus()
+{
+    qDebug() << "showJosephus()";
+    size_t size = pVector->size();
+    qDebug() << "size: " << size << " , " << pVector->at(0);
+    for (size_t i = 0; i < size; ++i)
+    {
+        draw_count++;
+        repaint();
+        QTime t;
+        t.start();
+        while(t.elapsed()<1000)
+            QCoreApplication::processEvents();
+    }
+
 }
