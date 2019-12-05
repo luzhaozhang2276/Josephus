@@ -1,14 +1,14 @@
 #include "josephusthread.h"
 
+#include <QTime>
+#include <QCoreApplication>
 #include <QDebug>
-//#include <vector>
 
 CircleList::CircleList() {
     head = new Node();
     head->next = head;
     head->data = 0;
     length = 0;
-    v_order = new std::vector<int>;
 }
 
 CircleList::~CircleList() {
@@ -63,40 +63,36 @@ void CircleList::insertNode(int n, int data) {
     length++;
 }
 
-// 应改成递归
 void CircleList::operation(int start, const int m) {
+
     Node *p = head;
     for (int i = 0; i < start; ++i)
         p = p->next;
     int count = 1;
     while (length){
-        if (getStatus() != 1)
-            break;
-        else if (getStatus() == 1)
-        {
-            if ( p == head) {
-                p = p->next;
-                if (length != 1)
-                    count++;
-            }
-            else if (count != m-1){
-                p = p->next;
-                if (p != head || length == 1) {
-                    count++;
-                }
-            }
-            else{
-                count = 0;
-                if (p->next == head)
-                    p = head;
-                // 需要删除的节点 p->next
-                //                sleep(1);
-                v_order->emplace_back(p->next->data);
-                deleteFunc(p);
-                //            traverseNode();
+        if ( p == head) {
+            p = p->next;
+            if (length != 1)
+                count++;
+        }
+        else if (count != m-1){
+            p = p->next;
+            if (p != head || length == 1) {
+                count++;
             }
         }
+        else{
+            count = 0;
+            if (p->next == head)
+                p = head;
+            // 需要删除的节点 p->next
+            v_order.emplace_back(p->next->data);
+            qDebug() << "删除： " << p->next->data;
+            deleteFunc(p);
+            //            traverseNode();
+        }
     }
+    qDebug() << "operation done and size: " << v_order.size();
 }
 
 void JosephusThread::getValue(int n, int y)
@@ -107,8 +103,32 @@ void JosephusThread::getValue(int n, int y)
 
 void JosephusThread::run()
 {
+    qDebug() << "thread start.";
+    qDebug() << "size: " << initial_value_ << "\n";
+    List.createCircleList(initial_value_);
+//    while (status_ == 0)
+//    {
+//        qDebug() << "wait for operation() start.";
+//        emit isWait();
+//    }
+//    qDebug() << "operation() start.";
     List.operation(start_value_,circulate_value_);
-    emit sendpVector(List.getVector());
+
+    std::vector<int> v(List.getVector());
+    int value;
+    for (std::vector<int>::size_type i=0; i<v.size(); ++i)
+    {
+        while (status_ == 0);
+        if (status_ == 1){
+        value = v.at(i);
+        qDebug() << "send success: " << value;
+        emit sendValue(value);
+        QTime t;
+        t.start();
+        while(t.elapsed()<1000)
+            QCoreApplication::processEvents();
+        }
+    }
     emit isDone();
 }
 

@@ -25,8 +25,7 @@ public:
     ~MainWindow();
     void initWindow();
 
-    void showLCD(int);
-    void showJosephus();
+
 
 signals:
     void sendmsg(int, int);
@@ -44,20 +43,25 @@ private slots:
     void on_lineEdit_circulate_value_returnPressed();
     void on_lineEdit_start_value_returnPressed();
 
-    void paintEvent(QPaintEvent*);
-
     void on_pushButton_configuration_clicked();
     void on_pushButton_start_clicked();
     void on_pushButton_pause_clicked();
     void on_pushButton_quit_clicked();
 
+    void paintEvent(QPaintEvent*);
+    void showLCD(int);
+    void showJosephus(int);
+    void stopThread();
+    void showWait();
+
 private:
     Ui::MainWindow *ui;
     QAction *openAction;
-//    Josephus jose;
     JosephusThread *josethread;
-    int paintflag;
-    std::vector<int> *pVector;
-    int draw_count;
+    std::vector<int> drawVector;
+    bool runflag{false};
+    int initial_value_main_{9};
+    int circulate_value_main_{3};
+    int start_value_main_{1};
 };
 #endif // MAINWINDOW_H
