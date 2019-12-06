@@ -106,30 +106,24 @@ void JosephusThread::run()
     qDebug() << "thread start.";
     qDebug() << "size: " << initial_value_ << "\n";
     List.createCircleList(initial_value_);
-//    while (status_ == 0)
-//    {
-//        qDebug() << "wait for operation() start.";
-//        emit isWait();
-//    }
-//    qDebug() << "operation() start.";
     List.operation(start_value_,circulate_value_);
 
     std::vector<int> v(List.getVector());
     int value;
-    for (std::vector<int>::size_type i=0; i<v.size(); ++i)
+    for (std::vector<int>::size_type i=remain_value_; i<v.size(); ++i)
     {
-        while (status_ == 0);
-        if (status_ == 1){
-        value = v.at(i);
-        qDebug() << "send success: " << value;
-        emit sendValue(value);
-        QTime t;
-        t.start();
-        while(t.elapsed()<1000)
-            QCoreApplication::processEvents();
+        while (!status_);
+        if (stop_)
+            break;
+        if (status_ ){
+            value = v.at(i);
+            qDebug() << "send success: " << value;
+            emit sendValue(value);
+            QTime t;
+            t.start();
+            while(t.elapsed() < (1000 - 10*speed_value_))
+                QCoreApplication::processEvents();
         }
     }
     emit isDone();
 }
-
-

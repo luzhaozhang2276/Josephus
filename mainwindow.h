@@ -5,12 +5,11 @@
 #include <iostream>
 #include <vector>
 
-//#include "josephus.h"
 #include "josephusthread.h"
 
-#define CENTER_POINT_X 400
-#define CENTER_POINT_Y 400
-#define RADIUS 200
+#define CENTER_POINT_X 450
+#define CENTER_POINT_Y 500
+#define RADIUS 300
 #define RADIUS_NODE 20
 
 QT_BEGIN_NAMESPACE
@@ -25,8 +24,6 @@ public:
     ~MainWindow();
     void initWindow();
 
-
-
 signals:
     void sendmsg(int, int);
 
@@ -35,30 +32,34 @@ private slots:
     void on_MainWindow_iconSizeChanged(const QSize &iconSize);
     void on_MainWindow_toolButtonStyleChanged(const Qt::ToolButtonStyle &toolButtonStyle);
 
-    void on_pushButton_2_clicked();
-    void on_pushButton_clicked(bool checked);
-    void on_pushButton_3_clicked();
-
-    void on_lineEdit_initial_value_returnPressed();
-    void on_lineEdit_circulate_value_returnPressed();
-    void on_lineEdit_start_value_returnPressed();
+    void on_lineEdit_initial_value_editingFinished();
+    void on_lineEdit_circulate_value_editingFinished();
+    void on_lineEdit_start_value_editingFinished();
+    void on_horizontalSlider_sliderReleased();
 
     void on_pushButton_configuration_clicked();
     void on_pushButton_start_clicked();
     void on_pushButton_pause_clicked();
     void on_pushButton_quit_clicked();
+    void on_pushButton_savefile_clicked();
+    void on_pushButton_loadfile_clicked();
 
     void paintEvent(QPaintEvent*);
-    void showLCD(int);
     void showJosephus(int);
     void stopThread();
-    void showWait();
+    void savefile();
+    void loadfile();
+
+
+
 
 private:
     Ui::MainWindow *ui;
     QAction *openAction;
     JosephusThread *josethread;
     std::vector<int> drawVector;
+    std::vector<int> initVector;
+    bool loadflag{false};
     bool runflag{false};
     int initial_value_main_{9};
     int circulate_value_main_{3};
